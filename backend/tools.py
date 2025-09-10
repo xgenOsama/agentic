@@ -6,6 +6,10 @@ import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Set environment variable for quota project
+os.environ['GOOGLE_CLOUD_QUOTA_PROJECT_ID'] = os.getenv("GOOGLE_CLOUD_PROJECT", "vodaf-aida25lcpm-206")
+
 # Constants
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT","vodaf-aida25lcpm-206")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION","europe-west1")
@@ -13,7 +17,7 @@ INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID","projects/100938974863/locatio
 DEPLOYED_INDEX_ID = os.getenv("DEPLOYED_INDEX_ID","VECTOR_SEARCH_ENDPOINT_20250909155315")
 EMBEDDINGS_FILE = os.getenv("EMBEDDINGS_FILE","embeddings_text.json")
 BUCKET_NAME = "vodaf-aida25lcpm-206-rag"
-BLOB_NAME = "embeddings/embeddings.json"
+BLOB_NAME = "csv_data/embeddings_text.json"
 
 def download_embeddings_if_not_exists():
     """Download embeddings file from GCP bucket if it doesn't exist locally."""
