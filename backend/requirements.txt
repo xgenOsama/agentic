@@ -1,0 +1,5 @@
+pandas
+google-cloud
+google-adk
+pandas
+dotenv

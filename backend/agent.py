@@ -1,0 +1,18 @@
+from dotenv import load_dotenv
+from google.adk import Agent
+import os
+from .prompts import return_instraction_root
+from .tools import retrieve_context_from_query
+model_name = os.getenv("MODEL", "gemini-2.0-flash")
+load_dotenv()
+
+# ---------- Root agent ----------
+root_agent = Agent(
+    name="NetworkIncidentResolutionAgent",
+    model=model_name,
+    description="Main coordinator for network incident management that intelligently routes requests to specialized sub-agents.",
+    instruction=return_instraction_root(),
+    tools=[
+        retrieve_context_from_query
+    ],
+)
