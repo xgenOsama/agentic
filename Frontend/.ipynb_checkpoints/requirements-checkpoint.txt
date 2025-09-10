@@ -7,3 +7,4 @@ plotly>=5.15.0
 numpy>=1.24.0
 google-cloud-aiplatform>=1.111.0
 google-auth==2.29.0
+
