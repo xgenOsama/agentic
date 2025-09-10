@@ -10,7 +10,6 @@ INDEX_ENDPOINT_ID = 'projects/100938974863/locations/europe-west1/indexEndpoints
 DEPLOYED_INDEX_ID = 'Test_INDEX_ENDPOINT_20250910101151'
 EMBEDDINGS_FILE = 'embeddings_text.json'
 INDEX_NAME = "projects/100938974863/locations/europe-west1/indexes/462806434363473920"
-
 # Initialize AI Platform
 aiplatform.init(project=PROJECT_ID, location=LOCATION)
 
@@ -85,4 +84,4 @@ def ingest_new_data_to_index(new_data: pd.DataFrame):
  
  
 df_insert_data_test = pd.read_excel("data.xlsx")
-ingest_new_data_to_index(df_insert_data_test.head(10))
+ingest_new_data_to_index(df_insert_data_test.head(1000))
