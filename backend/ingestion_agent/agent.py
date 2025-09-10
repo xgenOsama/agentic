@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from google.adk import Agent
 import os
 from .prompts import return_instruction_ingestion
-from .tools import ingest_new_data_to_index
+from .tools import ingest_incident_data, validate_incident_format, batch_ingest_incidents
 
 load_dotenv()
 
@@ -15,8 +15,8 @@ ingestion_agent = Agent(
     description="Specialized agent for ingesting and processing network incident data into the vector database.",
     instruction=return_instruction_ingestion(),
     tools=[
-        ingest_new_data_to_index,
-        # validate_incident_format,
-        # batch_ingest_incidents
+        ingest_incident_data,
+        validate_incident_format,
+        batch_ingest_incidents
     ],
 )
