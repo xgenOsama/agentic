@@ -57,7 +57,7 @@ def initialize_agent():
                 
                 st.session_state.agent_initialized = True
                 st.success("TroubleBuster Agent initialized successfully!")
-                st.rerun()
+                #st.rerun()
                 
     except Exception as e:
         st.session_state.initialization_error = str(e)
@@ -140,8 +140,9 @@ user_prompt = st.chat_input("Ask anything to TroubleBuster...")
 if user_prompt:
     # Initialize agent if not already done
     if not st.session_state.agent_initialized:
-        if not initialize_agent():
-            st.stop()
+        initialize_agent()
+        #if not initialize_agent():
+            #st.stop()
     
     st.session_state["messages"].append({"role": "user", "content": user_prompt})
     with st.chat_message("user"):
