@@ -16,8 +16,9 @@ os.environ['GOOGLE_CLOUD_QUOTA_PROJECT_ID'] = os.getenv("GOOGLE_CLOUD_PROJECT", 
 # Constants
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT","vodaf-aida25lcpm-206")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION","europe-west1")
-INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID","projects/100938974863/locations/europe-west1/indexEndpoints/8033005564252389376")
-DEPLOYED_INDEX_ID = os.getenv("DEPLOYED_INDEX_ID","VECTOR_SEARCH_ENDPOINT_20250909155315")
+INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID","projects/vodaf-aida25lcpm-206/locations/europe-west1/indexEndpoints/7257260528437821440")
+DEPLOYED_INDEX_ID = os.getenv("DEPLOYED_INDEX_ID","Test_INDEX_ENDPOINT_20250910101151")
+INDEX_NAME = os.getenv("INDEX_NAME","projects/vodaf-aida25lcpm-206/locations/europe-west1/indexes/462806434363473920")
 EMBEDDINGS_FILE = os.getenv("EMBEDDINGS_FILE","embeddings_text.json")
 BUCKET_NAME = "vodaf-aida25lcpm-206-rag"
 BLOB_NAME = "csv_data/embeddings_text.json"
@@ -56,6 +57,41 @@ def get_embedding_model():
             print("⚠️  Using mock embedding model for testing")
             embedding_model = MockEmbeddingModel()
     return embedding_model
+
+def get_vector_index():
+    """Get the vector search index for direct datapoint insertion."""
+    try:
+        # Initialize AI Platform if not already done
+        if not hasattr(aiplatform, '_initialized') or not aiplatform._initialized:
+            aiplatform.init(project=PROJECT_ID, location=LOCATION)
+        
+        # Retrieve the index
+        index = aiplatform.MatchingEngineIndex(
+            index_name=INDEX_NAME
+        )
+        print(f"✅ Vector index initialized: {INDEX_NAME}")
+        return index
+    except Exception as e:
+        print(f"❌ Error initializing vector index: {e}")
+        return None
+
+def get_index_endpoint():
+    """Get the index endpoint for vector search."""
+    try:
+        # Initialize AI Platform if not already done
+        if not hasattr(aiplatform, '_initialized') or not aiplatform._initialized:
+            aiplatform.init(project=PROJECT_ID, location=LOCATION)
+        
+        index_endpoint = aiplatform.MatchingEngineIndexEndpoint(
+            INDEX_ENDPOINT_ID,
+            project=PROJECT_ID,
+            location=LOCATION,
+        )
+        print(f"✅ Index endpoint initialized: {INDEX_ENDPOINT_ID}")
+        return index_endpoint
+    except Exception as e:
+        print(f"❌ Error initializing index endpoint: {e}")
+        return None
 
 def validate_incident_format(incident_data: Dict[str, Any]) -> str:
     """
@@ -209,27 +245,48 @@ def ingest_incident_data(incident_data: Dict[str, Any]) -> str:
         except Exception as e:
             print(f"⚠️  Warning: Failed to write to local file: {str(e)}")
         
-        # Step 7: Upload to vector database via index endpoint
+        # Step 7: Upload to vector database via direct index insertion
+        vector_insert_success = False
+        try:
+            print("🔄 Inserting directly into vector index...")
+            
+            # Get the vector index
+            index = get_vector_index()
+            if index is None:
+                print("⚠️  Could not initialize vector index, skipping direct insertion")
+            else:
+                # Prepare datapoint for insertion
+                datapoint = {
+                    "datapoint_id": str(record_id),
+                    "feature_vector": embedding,
+                }
+                
+                # Upsert to index
+                print(f"📤 Upserting datapoint with ID: {record_id}")
+                result = index.upsert_datapoints(datapoints=[datapoint])
+                print(f"✅ Vector index upsert result: {result}")
+                vector_insert_success = True
+                
+        except Exception as e:
+            print(f"⚠️  Warning: Direct vector index insertion failed: {str(e)}")
+        
+        # Step 8: Also try to load via index endpoint (alternative method)
+        endpoint_success = False
         try:
             # Initialize AI Platform if not already done
             if not hasattr(aiplatform, '_initialized') or not aiplatform._initialized:
                 aiplatform.init(project=PROJECT_ID, location=LOCATION)
             
-            # Try to add to vector search index
-            index_endpoint = aiplatform.MatchingEngineIndexEndpoint(
-                INDEX_ENDPOINT_ID,
-                project=PROJECT_ID,
-                location=LOCATION,
-            )
-            
-            # Note: Direct insertion to vector index requires specific API calls
-            # For now, we'll update the GCS file which feeds the index
-            print("🔄 Updating vector database via GCS...")
+            # Try to get index endpoint for verification
+            index_endpoint = get_index_endpoint()
+            if index_endpoint:
+                print("✅ Index endpoint is accessible for future queries")
+                endpoint_success = True
             
         except Exception as e:
-            print(f"⚠️  Warning: Vector database update issue: {str(e)}")
+            print(f"⚠️  Warning: Index endpoint access issue: {str(e)}")
         
-        # Step 8: Upload to GCS bucket (this feeds the vector database)
+        # Step 9: Upload to GCS bucket (backup method)
         gcs_success = False
         try:
             storage_client = storage.Client(project=PROJECT_ID)
@@ -258,22 +315,42 @@ def ingest_incident_data(incident_data: Dict[str, Any]) -> str:
             print("📝 Data is still stored locally for manual upload later")
         
         # Determine success message based on what worked
-        if gcs_success:
+        if vector_insert_success and gcs_success:
             success_message = f"""✅ Successfully ingested incident {original_incident_id} (stored as ID: {record_id}):
 - ✅ Validation passed
 - ✅ ID transformed: {original_incident_id} → {record_id}
 - ✅ Embedding generated ({len(embedding)} dimensions)
 - ✅ Stored locally in {EMBEDDINGS_FILE}
+- ✅ Inserted directly into vector index
 - ✅ Uploaded to GCS bucket
-- 📊 Ready for vector search queries"""
+- 📊 Ready for immediate vector search queries"""
+        elif vector_insert_success:
+            success_message = f"""✅ Successfully ingested incident {original_incident_id} (stored as ID: {record_id}):
+- ✅ Validation passed
+- ✅ ID transformed: {original_incident_id} → {record_id}
+- ✅ Embedding generated ({len(embedding)} dimensions)
+- ✅ Stored locally in {EMBEDDINGS_FILE}
+- ✅ Inserted directly into vector index
+- ⚠️  GCS upload failed (but vector index updated)
+- 📊 Ready for immediate vector search queries"""
+        elif gcs_success:
+            success_message = f"""⚠️  Partially ingested incident {original_incident_id} (stored as ID: {record_id}):
+- ✅ Validation passed
+- ✅ ID transformed: {original_incident_id} → {record_id}
+- ✅ Embedding generated ({len(embedding)} dimensions)
+- ✅ Stored locally in {EMBEDDINGS_FILE}
+- ⚠️  Direct vector insertion failed
+- ✅ Uploaded to GCS bucket
+- 📊 Available via GCS, may need index rebuild for vector search"""
         else:
             success_message = f"""⚠️  Partially ingested incident {original_incident_id} (stored as ID: {record_id}):
 - ✅ Validation passed
 - ✅ ID transformed: {original_incident_id} → {record_id}
 - ✅ Embedding generated ({len(embedding)} dimensions)
 - ✅ Stored locally in {EMBEDDINGS_FILE}
+- ⚠️  Direct vector insertion failed
 - ⚠️  GCS upload failed (stored locally for manual upload)
-- 📊 Local data ready, GCS sync needed for full vector search"""
+- 📊 Local data ready, manual sync needed for vector search"""
         
         print(success_message)
         return success_message
@@ -287,7 +364,7 @@ def ingest_incident_data(incident_data: Dict[str, Any]) -> str:
 
 def batch_ingest_incidents(incidents_list: List[Dict[str, Any]]) -> str:
     """
-    Ingest multiple incident records in batch.
+    Ingest multiple incident records in batch with direct vector index insertion.
     
     Args:
         incidents_list: List of incident dictionaries
@@ -299,11 +376,14 @@ def batch_ingest_incidents(incidents_list: List[Dict[str, Any]]) -> str:
         'total': len(incidents_list),
         'successful': 0,
         'failed': 0,
+        'vector_inserted': 0,
         'errors': []
     }
     
     processed_records = []
+    vector_datapoints = []
     
+    # Process all records first
     for i, incident in enumerate(incidents_list):
         try:
             # Validate incident
@@ -338,19 +418,44 @@ def batch_ingest_incidents(incidents_list: List[Dict[str, Any]]) -> str:
                 }
             }
             
+            # Prepare datapoint for vector insertion
+            datapoint = {
+                "datapoint_id": str(record_id),
+                "feature_vector": embedding,
+            }
+            
             processed_records.append(record)
+            vector_datapoints.append(datapoint)
             results['successful'] += 1
             
         except Exception as e:
             results['failed'] += 1
             results['errors'].append(f"Record {i+1}: Processing error - {str(e)}")
     
-    # Batch write to file
+    # Batch insert into vector index
+    vector_success = False
+    if vector_datapoints:
+        try:
+            print(f"🔄 Batch inserting {len(vector_datapoints)} records into vector index...")
+            index = get_vector_index()
+            if index:
+                # Upsert all datapoints at once
+                result = index.upsert_datapoints(datapoints=vector_datapoints)
+                print(f"✅ Batch vector index upsert result: {result}")
+                results['vector_inserted'] = len(vector_datapoints)
+                vector_success = True
+            else:
+                print("⚠️  Could not initialize vector index for batch insertion")
+        except Exception as e:
+            print(f"⚠️  Warning: Batch vector index insertion failed: {e}")
+    
+    # Batch write to local file
     if processed_records:
         try:
             with open(EMBEDDINGS_FILE, 'a') as f:
                 for record in processed_records:
                     f.write(json.dumps(record) + '\n')
+            print(f"💾 Wrote {len(processed_records)} records to local file")
             
             # Upload to GCS
             try:
@@ -367,6 +472,7 @@ def batch_ingest_incidents(incidents_list: List[Dict[str, Any]]) -> str:
                     updated_content = new_content
                 
                 blob.upload_from_string(updated_content)
+                print(f"☁️  Uploaded {len(processed_records)} records to GCS")
                 
             except Exception as e:
                 print(f"Warning: Failed to upload batch to GCS: {e}")
@@ -376,10 +482,12 @@ def batch_ingest_incidents(incidents_list: List[Dict[str, Any]]) -> str:
     
     # Generate summary
     summary = f"""
-    Batch Ingestion Summary:
-    - Total records processed: {results['total']}
-    - Successfully ingested: {results['successful']}
-    - Failed: {results['failed']}
+Batch Ingestion Summary:
+- Total records processed: {results['total']}
+- Successfully processed: {results['successful']}
+- Direct vector insertions: {results['vector_inserted']}
+- Failed: {results['failed']}
+- Vector index updated: {'✅ Yes' if vector_success else '⚠️  No'}
     """
     
     if results['errors']:
@@ -449,15 +557,25 @@ def test_ingestion_setup() -> str:
         except Exception as e:
             setup_status.append(f"  ❌ GCS access failed: {str(e)}")
         
-        # Test 6: Vector search endpoint
-        setup_status.append("\n🔍 VECTOR SEARCH:")
+        # Test 6: Vector search index (direct insertion)
+        setup_status.append("\n🔍 VECTOR SEARCH INDEX:")
         try:
-            index_endpoint = aiplatform.MatchingEngineIndexEndpoint(
-                INDEX_ENDPOINT_ID,
-                project=PROJECT_ID,
-                location=LOCATION,
-            )
-            setup_status.append("  ✅ Vector search endpoint accessible")
+            index = get_vector_index()
+            if index:
+                setup_status.append(f"  ✅ Vector search index accessible: {INDEX_NAME}")
+            else:
+                setup_status.append(f"  ❌ Vector search index not accessible")
+        except Exception as e:
+            setup_status.append(f"  ❌ Vector search index failed: {str(e)}")
+        
+        # Test 7: Vector search endpoint
+        setup_status.append("\n🔗 VECTOR SEARCH ENDPOINT:")
+        try:
+            index_endpoint = get_index_endpoint()
+            if index_endpoint:
+                setup_status.append(f"  ✅ Vector search endpoint accessible: {INDEX_ENDPOINT_ID}")
+            else:
+                setup_status.append(f"  ❌ Vector search endpoint not accessible")
         except Exception as e:
             setup_status.append(f"  ❌ Vector search endpoint failed: {str(e)}")
         
