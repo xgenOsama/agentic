@@ -18,4 +18,4 @@ USER app
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "troublebuster_agent.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+CMD ["streamlit", "run", "frontend.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
