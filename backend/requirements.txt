@@ -1,5 +1,8 @@
 pandas
-google-cloud
+google-cloud-aiplatform
+google-cloud-storage
 google-adk
-pandas
-dotenv
+python-dotenv
+vertexai
+langchain
+openpyxl.
