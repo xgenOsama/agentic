@@ -3,9 +3,15 @@ import uuid
     
 from vertexai import agent_engines
 from vertexai.preview import reasoning_engines
+from google.auth import default
+from google.cloud import aiplatform
 
 # Page setup
 st.set_page_config(page_title="TroubleBuster Agent", page_icon="vodafone3.png", layout="centered")
+
+credentials, project = default()
+aiplatform.init(project=project, location="europe-west1", credentials=credentials)
+ 
 
 # Initialize session state for managing multiple chat sessions
 if "chat_sessions" not in st.session_state:
@@ -17,7 +23,7 @@ if "messages" not in st.session_state:
     assistant_Opening_msg = "Hi, This is TroubleBuster. How can I help you?"
     st.session_state["messages"].append({"role": "assistant", "content": assistant_Opening_msg})
     
-agent_engine_id = "projects/vodaf-aida25lcpm-206/locations/europe-west1/reasoningEngines/4009065685475917824" #"projects/100938974863/locations/europe-west1/reasoningEngines/4009065685475917824"
+agent_engine_id = "projects/vodaf-aida25lcpm-206/locations/europe-west1/reasoningEngines/300351392336314368" #"projects/100938974863/locations/europe-west1/reasoningEngines/4009065685475917824"
 
 agent = agent_engines.get(agent_engine_id)
 
@@ -98,7 +104,7 @@ if user_prompt:
     
     st.session_state["messages"].append({"role": "assistant", "content": text_part})
     with st.chat_message("assistant"):
-        st.markdown(assistant_response)
+        st.markdown(text_part)
         
 # --- SIDEBAR CHAT HISTORY ---
 with st.sidebar:
