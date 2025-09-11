@@ -13,7 +13,7 @@ os.environ['GOOGLE_CLOUD_QUOTA_PROJECT_ID'] = os.getenv("GOOGLE_CLOUD_PROJECT", 
 # Constants
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT","vodaf-aida25lcpm-206")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION","europe-west1")
-INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID","projects/100938974863/locations/europe-west1/indexEndpoints/8033005564252389376")
+INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID","projects/100938974863/locations/europe-west1/indexEndpoints/5059503910281019392")
 DEPLOYED_INDEX_ID = os.getenv("DEPLOYED_INDEX_ID","VECTOR_SEARCH_ENDPOINT_20250909155315")
 EMBEDDINGS_FILE = os.getenv("EMBEDDINGS_FILE","embeddings_text.json")
 BUCKET_NAME = "vodaf-aida25lcpm-206-rag"
