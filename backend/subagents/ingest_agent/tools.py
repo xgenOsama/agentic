@@ -12,7 +12,7 @@ from langchain.docstore.document import Document
 PROJECT_ID = 'vodaf-aida25lcpm-206'
 LOCATION = 'europe-west1'
 INDEX_ENDPOINT_ID = 'projects/100938974863/locations/europe-west1/indexEndpoints/5059503910281019392'
-DEPLOYED_INDEX_ID = 'VECTOR_INDEX_NETWORK'
+DEPLOYED_INDEX_ID = 'VECTOR_INDEX_NETWORK_ENDPOINT'
 EMBEDDINGS_FILE = 'embeddings_text.json'
 INDEX_NAME = "projects/100938974863/locations/europe-west1/indexes/7364009913355337728"
 

@@ -11,10 +11,10 @@ from langchain.docstore.document import Document
 # Constants
 PROJECT_ID = 'vodaf-aida25lcpm-206'
 LOCATION = 'europe-west1'
-INDEX_ENDPOINT_ID = 'projects/100938974863/locations/europe-west1/indexEndpoints/7257260528437821440'
-DEPLOYED_INDEX_ID = 'Test_INDEX_ENDPOINT_20250910101151'
+INDEX_ENDPOINT_ID = 'projects/100938974863/locations/europe-west1/indexEndpoints/5059503910281019392'
+DEPLOYED_INDEX_ID = 'VECTOR_INDEX_NETWORK'
 EMBEDDINGS_FILE = 'embeddings_text.json'
-INDEX_NAME = "projects/100938974863/locations/europe-west1/indexes/462806434363473920"
+INDEX_NAME = "projects/100938974863/locations/europe-west1/indexes/7364009913355337728"
 
 # Initialize AI Platform
 aiplatform.init(project=PROJECT_ID, location=LOCATION)
@@ -95,7 +95,6 @@ def ingest_new_data_to_index_from_gcs(gcs_url: str):
 
     # Upsert to index
     print(index.upsert_datapoints(datapoints=items))
-    print(items)
 
     # Update embeddings file
     updated_df = pd.concat([df, additional_df], ignore_index=True).drop_duplicates(subset='id')
