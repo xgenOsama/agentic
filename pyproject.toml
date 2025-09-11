@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "network-agent"
+version = "0.1.0"
+description = ""
+authors = []
+license = "Apache License 2.0"
+readme = "README.md"
+packages = [
+    {include = "backend"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+google-adk = { version = ">=1.12.0", extras = ["eval"] }
+google-genai = "^1.9.0"
+google-cloud-bigquery = "3.34.0"
+google-cloud-aiplatform = { version = ">=1.88.0,<2.0.0", extras = ["adk", "agent-engines"] }
+pillow = "11.0.0"
+Deprecated = "1.2.18"
+absl-py = ">=2.2.2,<3.0.0"
+pdfminer-six = "20250506"
+google-cloud-storage = "2.19.0"
+python-dotenv = "^1.1.1"
+pytesseract = "^0.3.10"
+langchain-google-vertexai = "==2.0.27"
+pydantic = "^2.10.6"
+openpyxl = "*"
+pandas = "^2.0.3"
+langchain_community = "*"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
