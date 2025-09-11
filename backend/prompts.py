@@ -93,9 +93,17 @@ For different incident types:
 - **Context Validation**: Ensure retrieved incidents are truly relevant to current situation
 
 ## Tool Usage Guidelines:
-- Use `GCS_INGEST_AGENT_TOOL` when you need to ingest/add new netowrk data to the vector index.
-- Use `ANALYTICS_AGENT_TOOL` when you have an analytics question related to the data you have.
-- Use retrieve_context_from_query with service impact terms, symptoms, and technical components
+- Use `retrieve_context_from_query` to SEARCH and RETRIEVE existing incident data from the vector database
+- Use `INCIDENT_INGESTION_AGENT_TOOL` when you need to INGEST structured incident data (JSON format with fields like incident_id, severity, etc.)
+- Use `GCS_INGEST_AGENT_TOOL` when you need to INGEST data files from Google Cloud Storage (Excel, CSV files)
+- Use `ANALYTICS_AGENT_TOOL` when you have analytics questions about the data (trends, patterns, statistics)
+
+### Important Distinction:
+- **RETRIEVAL/SEARCH**: Use retrieve_context_from_query to find similar incidents and get resolution guidance
+- **INGESTION**: Use INCIDENT_INGESTION_AGENT_TOOL for structured incident data or GCS_INGEST_AGENT_TOOL for file uploads
+- **ANALYTICS**: Use ANALYTICS_AGENT_TOOL for data analysis and insights
+
+### Search Guidelines:
 - Perform multiple targeted searches: service type, symptoms, components, and locations
 - Search for both problem descriptions AND resolution steps
 - Include geographic context when available

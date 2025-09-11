@@ -8,11 +8,13 @@ load_dotenv()
 
 from .subagents.analytics_agent import ANALYTICS_AGENT
 from .subagents.ingest_agent import GCS_INGEST_AGENT
+from .subagents.incident_ingestion_agent import INCIDENT_INGESTION_AGENT
 
 from google.adk.tools.agent_tool import AgentTool
 
 ANALYTICS_AGENT_TOOL = AgentTool(agent=ANALYTICS_AGENT)
 GCS_INGEST_AGENT_TOOL = AgentTool(agent=GCS_INGEST_AGENT)
+INCIDENT_INGESTION_AGENT_TOOL = AgentTool(agent=INCIDENT_INGESTION_AGENT)
 
 # ---------- Root agent ----------
 root_agent = Agent(
@@ -23,7 +25,8 @@ root_agent = Agent(
     tools=[
         retrieve_context_from_query,
         ANALYTICS_AGENT_TOOL,
-        GCS_INGEST_AGENT_TOOL
+        GCS_INGEST_AGENT_TOOL,
+        INCIDENT_INGESTION_AGENT_TOOL
     ],
     
 )
