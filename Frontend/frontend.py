@@ -1,5 +1,6 @@
 import streamlit as st
 import uuid
+import os
 from vertexai import agent_engines
 from vertexai.preview import reasoning_engines
 from google.auth import default
@@ -9,8 +10,7 @@ from google.cloud import aiplatform
 st.set_page_config(page_title="TroubleBuster Agent", page_icon="vodafone3.png", layout="centered")
 
 # Agent configuration
-#AGENT_ENGINE_ID = "projects/vodaf-aida25lcpm-206/locations/europe-west1/reasoningEngines/300351392336314368"
-AGENT_ENGINE_ID = "projects/100938974863/locations/europe-west1/reasoningEngines/6493363829924167680"
+AGENT_ENGINE_ID = os.environ.get("AGENT_ENGINE_ID", "projects/100938974863/locations/europe-west1/reasoningEngines/6493363829924167680")
  
 # Initialize session state for managing multiple chat sessions
 if "chat_sessions" not in st.session_state:
