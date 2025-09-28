@@ -2,3 +2,4 @@ venv/
 embeddings_text.json
 **/__pycache__/
 __pycache__/
+.env
