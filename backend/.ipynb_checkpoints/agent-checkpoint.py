@@ -7,6 +7,7 @@ model_name = os.getenv("MODEL", "gemini-2.0-flash")
 load_dotenv()
 
 from .subagents.analytics_agent import ANALYTICS_AGENT
+from .subagents.ingest_agent import ANALYTICS_AGENT
 
 from google.adk.tools.agent_tool import AgentTool
 

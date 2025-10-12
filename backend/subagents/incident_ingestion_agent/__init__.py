@@ -1,0 +1,3 @@
+from .agent import INCIDENT_INGESTION_AGENT
+
+__all__ = ['INCIDENT_INGESTION_AGENT']
